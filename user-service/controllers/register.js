@@ -1,3 +1,4 @@
+const { ApiResponse } = require("../middleware/ApiResponse");
 const userModel = require("../models/user");
 
 exports.registerUser = async (req, res, next) => {
@@ -10,7 +11,12 @@ exports.registerUser = async (req, res, next) => {
         });
 
         if (existingUser) {
-            return res.status(409).json({ message: "User already exists" });
+            return ApiResponse(
+                res,
+                409,
+                false,
+                "User already exists, sign in."
+            );
         }
 
         const newUser = await userModel.create(req.body);
