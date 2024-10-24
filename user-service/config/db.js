@@ -3,7 +3,7 @@ const config = require("../config");
 
 exports.connectDB = async () => {
     try {
-        // await mongoose.connect(config.mongo_uri);
+        await mongoose.connect(config.mongo_uri);
 
         console.log("User service connect to database succesfully...");
     } catch (error) {
