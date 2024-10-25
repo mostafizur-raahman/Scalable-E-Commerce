@@ -2,7 +2,7 @@ const express = require("express");
 const http = require("http");
 const { connectDB } = require("./config/db");
 const config = require("./config");
-const userRoutes = require("./routes");
+const productRoutes = require("./routes");
 const app = express();
 
 const server = http.createServer(app);
@@ -14,16 +14,16 @@ app.use(express.json());
 connectDB()
     .then(() => {
         server.listen(config.port, () => {
-            console.log(`user.service running on port ${config.port}`);
+            console.log(`product.service running on port ${config.port}`);
         });
     })
     .catch((err) => {
-        console.error("Failed to connect to the database user.service", err);
+        console.error("Failed to connect to the database product.service", err);
         process.exit(1);
     });
 
 // routes
-app.use("/api/v1", userRoutes);
+app.use("/api/v1", productRoutes);
 
 // 404 Not Found Middleware
 app.use((req, res, next) => {
