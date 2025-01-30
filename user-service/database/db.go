@@ -1,31 +1,54 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
-	"os"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"user-service/config"
+
+	_ "github.com/lib/pq"
 )
 
-var DB *gorm.DB
+var DB *sql.DB
 
-func ConnectDB() {
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
+func ConnectDatabase(cfg *config.Config) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	var err error
+	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		log.Fatal("❌ Database connection failed:", err)
 	}
 
-	DB = db
-	fmt.Println("Database connection established...")
+	err = DB.Ping()
+	if err != nil {
+		log.Fatal("❌ Unable to reach database:", err)
+	}
+
+	fmt.Println("✅ Connected to PostgreSQL successfully")
+
+	// Automatically create users table if it doesn't exist
+	createUsersTable()
+}
+
+// createUsersTable ensures the users table exists
+func createUsersTable() {
+	query := `
+	CREATE TABLE IF NOT EXISTS users (
+	    id SERIAL PRIMARY KEY,
+	    name VARCHAR(255) NOT NULL,
+	    email VARCHAR(255) UNIQUE NOT NULL,
+	    password TEXT NOT NULL
+	);
+	`
+
+	_, err := DB.Exec(query)
+	if err != nil {
+		log.Fatal("❌ Error creating users table:", err)
+	}
+
+	fmt.Println("✅ Users table is ready")
 }
