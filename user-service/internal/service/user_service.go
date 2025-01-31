@@ -42,3 +42,32 @@ func (s *userService) RegisterUser(user *models.User) (string, error) {
 	response, _ := json.Marshal(map[string]string{"message": "User registered successfully"})
 	return string(response), nil
 }
+
+func (s *userService) Login(user *models.User) (string, error) {
+	existingUser, err := s.repo.GetUserByEmail(user.Email)
+	if err != nil {
+		return "", err
+	}
+	if existingUser == nil {
+		response, _ := json.Marshal(map[string]string{"error": "invalid email or password"})
+		return string(response), errors.New("invalid email or password")
+	}
+
+	// Validate password
+	if !utils.CheckPasswordHash(user.Password, existingUser.Password) {
+		response, _ := json.Marshal(map[string]string{"error": "invalid email or password"})
+		return string(response), errors.New("invalid email or password")
+	}
+
+	// Generate token (assuming JWT implementation)
+	token, err := utils.GenerateJWT(existingUser.ID, existingUser.Email)
+	if err != nil {
+		return "", err
+	}
+
+	response, _ := json.Marshal(map[string]string{
+		"message": "Login successful",
+		"token":   token,
+	})
+	return string(response), nil
+}

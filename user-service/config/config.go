@@ -12,6 +12,8 @@ type Config struct {
 	DBName     string
 	DBPort     string
 	ServerPort string
+	JWTSecret  string
+	JWTExpiry  string
 }
 
 // LoadConfig loads environment variables
@@ -23,6 +25,8 @@ func LoadConfig() *Config {
 		DBName:     os.Getenv("DB_NAME"),
 		DBPort:     os.Getenv("DB_PORT"),
 		ServerPort: os.Getenv("SERVER_PORT"),
+		JWTSecret:  os.Getenv("JWT_SECRET"),
+		JWTExpiry:  os.Getenv("JWT_EXPIRY"),
 	}
 
 	return cfg

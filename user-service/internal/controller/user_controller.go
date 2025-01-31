@@ -36,3 +36,23 @@ func (uc *UserController) RegisterHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(response))
 }
+
+func (uc *UserController) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, `"error": "Invalid request payload"}`, http.StatusBadRequest)
+	}
+
+	response, err := uc.UserService.Login(&user)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte(response))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
+}
