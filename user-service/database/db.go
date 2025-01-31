@@ -10,32 +10,40 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DB *sql.DB
+var DB *sql.DB // Global DB variable
 
-func ConnectDatabase(cfg *config.Config) {
+// ConnectDatabase initializes the PostgreSQL connection and returns *sql.DB
+func ConnectDatabase(cfg *config.Config) (*sql.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort,
 	)
 
-	var err error
-	DB, err = sql.Open("postgres", dsn)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("❌ Database connection failed:", err)
+		log.Println("❌ Database connection failed:", err)
+		return nil, err
 	}
 
-	err = DB.Ping()
-	if err != nil {
-		log.Fatal("❌ Unable to reach database:", err)
+	// Ensure database connection is alive
+	if err := db.Ping(); err != nil {
+		log.Println("❌ Unable to reach database:", err)
+		return nil, err
+	}
+
+	// Assign to global DB variable
+	DB = db
+
+	// Ensure users table exists
+	if err := createUsersTable(db); err != nil {
+		return nil, err
 	}
 
 	fmt.Println("✅ Connected to PostgreSQL successfully")
-
-	// Automatically create users table if it doesn't exist
-	createUsersTable()
+	return db, nil
 }
 
 // createUsersTable ensures the users table exists
-func createUsersTable() {
+func createUsersTable(db *sql.DB) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS users (
 	    id SERIAL PRIMARY KEY,
@@ -45,10 +53,12 @@ func createUsersTable() {
 	);
 	`
 
-	_, err := DB.Exec(query)
+	_, err := db.Exec(query)
 	if err != nil {
-		log.Fatal("❌ Error creating users table:", err)
+		log.Println("❌ Error creating users table:", err)
+		return err
 	}
 
-	fmt.Println("✅ Users table is ready")
+	fmt.Println("✅ Users table created successfully")
+	return nil
 }

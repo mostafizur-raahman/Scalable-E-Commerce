@@ -6,13 +6,21 @@ import (
 	"user-service/utils"
 )
 
-func RegisterUser(user *models.User) error {
-	hashedPass, err := utils.HashPassword(user.Password)
+type userService struct {
+	repo repository.UserRepository
+}
+
+func NewUserService(repo repository.UserRepository) *userService {
+	return &userService{repo: repo}
+}
+
+func (s *userService) RegisterUser(user *models.User) error {
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return err
 	}
 
-	user.Password = hashedPass
+	user.Password = hashedPassword
 
-	return repository.RegisterUser(user)
+	return s.repo.RegisterUser(user)
 }

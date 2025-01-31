@@ -6,6 +6,6 @@ import (
 	"user-service/internal/controller"
 )
 
-func UserRoutes() {
-	http.HandleFunc("/user/register", controller.RegisterHandler)
+func UserRoutes(mux *http.ServeMux, userController *controller.UserController) {
+	mux.HandleFunc("/user/register", userController.RegisterHandler)
 }

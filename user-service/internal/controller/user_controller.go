@@ -8,7 +8,15 @@ import (
 	"user-service/internal/service"
 )
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+type UserController struct {
+	UserService service.UserService
+}
+
+func NewUserController(userService service.UserService) *UserController {
+	return &UserController{UserService: userService}
+}
+
+func (uc *UserController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -16,7 +24,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.RegisterUser(&user); err != nil {
+	if err := uc.UserService.RegisterUser(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
