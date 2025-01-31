@@ -20,25 +20,19 @@ func (uc *UserController) RegisterHandler(w http.ResponseWriter, r *http.Request
 	var user models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		http.Error(w, `{"error": "Invalid request payload"}`, http.StatusBadRequest)
 		return
 	}
 
-	if err := uc.UserService.RegisterUser(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	response, err := uc.UserService.RegisterUser(&user)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte(response))
 		return
 	}
 
-	userResponse := models.UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-	}
-
-	// Send user data in the response
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "User registered successfully",
-		"user":    userResponse,
-	})
+	w.Write([]byte(response))
 }
